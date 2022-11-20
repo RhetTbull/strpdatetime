@@ -12,8 +12,11 @@ The Super Strftime Format Language is a superset of the strftime/strptime format
     - *: Match any number of characters
     - ^: Match the beginning of the string
     - $: Match the end of the string
-    - %INT: Match INT number of characters
-    - In addition to `%%` for a literal `%`, the following format codes are supported: `%^`, `%$`, `%*`, `%|` for `^`, `$`, `*`, `|` respectively
+    - {n}: Match exactly n characters
+    - {n,}: Match at least n characters
+    - {n,m}: Match at least n characters and at most m characters
+    - In addition to `%%` for a literal `%`, the following format codes are supported: 
+        `%^`, `%$`, `%*`, `%|`, `%{`, `%}` for `^`, `$`, `*`, `|`, `{`, `}` respectively
     - Unlike the standard library, the leading zero is not optional for %d, %m, %H, %I, %M, %S, %j, %U, %W, and %V
     - For optional leading zero, use %-d, %-m, %-H, %-I, %-M, %-S, %-j, %-U, %-W, and %-V
 """
@@ -65,8 +68,11 @@ EndAnchor:
 ;
 
 FormatCodeSkip:
-    '%'
+    '{'
     /[0-9]+/
+    ','?
+    /[0-9]*/
+    '}'
 ;
 
 FormatCodeDate:
@@ -76,7 +82,7 @@ FormatCodeDate:
 
 FormatCodeSpecialChars:
     '%'
-    /[%^$|*]/
+    /[%^$|*{}]/
 ;
 
 FormatCodeStar:
@@ -88,15 +94,15 @@ FormatCode:
 ;
 
 NON_FORMAT_CODE:
-    /[^0-9%$^|*]/+
+    /[^0-9%$^|*{}]/+
 ;
 """
 
 
 STRPTIME_META_MODEL: TextXMetaModel = metamodel_from_str(GRAMMAR, skipws=False)
 
-RE_SKIP_CHARS = re.compile(r"%([0-9]+)")
-RE_SPECIAL_CHARS = re.compile(r"%([%^$|*])")
+RE_SKIP_CHARS = re.compile(r"{([0-9]+),?([0-9]*)}")
+RE_SPECIAL_CHARS = re.compile(r"%([%^$|*{}])")
 
 
 def _getlang():
