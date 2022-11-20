@@ -14,7 +14,8 @@ The Super Strftime Format Language is a superset of the strftime/strptime format
     - $: Match the end of the string
     - %INT: Match INT number of characters
     - In addition to `%%` for a literal `%`, the following format codes are supported: `%^`, `%$`, `%*`, `%|` for `^`, `$`, `*`, `|` respectively
-
+    - Unlike the standard library, the leading zero is not optional for %d, %m, %H, %I, %M, %S, %j, %U, %W, and %V
+    - For optional leading zero, use %-d, %-m, %-H, %-I, %-M, %-S, %-j, %-U, %-W, and %-V
 """
 
 from __future__ import annotations
@@ -259,7 +260,7 @@ class LocaleTime(object):
 class TimeRE(dict):
     """Handle conversion from format directives to regexes."""
 
-    def __init__(self, locale_time=None):
+    def __init__(self, locale_time=None):  # sourcery skip
         """Create keys/values.
 
         Order of execution is important for dependency reasons.
@@ -273,19 +274,32 @@ class TimeRE(dict):
         base.__init__(
             {
                 # The " [1-9]" part of the regex is to make %c from ANSI C work
-                "d": r"(?P<d>3[0-1]|[1-2]\d|0[1-9]|[1-9]| [1-9])",
+                # Unlike the standard library, the leading zero is not optional for %d, %m, %H, %I, %M, %S, %j, %U, %W, and %V
+                # Use %-d, %-m, %-H, %-I, %-M, %-S, %-j, %-U, %-W, and %-V to allow a leading zero
+                "d": r"(?P<d>3[0-1]|[1-2]\d|0[1-9])",
+                # "d": r"(?P<d>3[0-1]|[1-2]\d|0[1-9]|[1-9]| [1-9])",
+                "-d": r"(?P<d>3[0-1]|[1-2]\d|0[1-9]|[1-9]| [1-9])",
                 "f": r"(?P<f>[0-9]{1,6})",
-                "H": r"(?P<H>2[0-3]|[0-1]\d|\d)",
-                "I": r"(?P<I>1[0-2]|0[1-9]|[1-9])",
+                "H": r"(?P<H>2[0-3]|[0-1]\d)",
+                "-H": r"(?P<H>2[0-3]|[0-1]\d|\d)",
+                "I": r"(?P<I>1[0-2]|0[1-9])",
+                "-I": r"(?P<I>1[0-2]|0[1-9]|[1-9]| [1-9])",
                 "G": r"(?P<G>\d\d\d\d)",
-                "j": r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9]|[1-9]\d|0[1-9]|[1-9])",
-                "m": r"(?P<m>1[0-2]|0[1-9]|[1-9])",
-                "M": r"(?P<M>[0-5]\d|\d)",
-                "S": r"(?P<S>6[0-1]|[0-5]\d|\d)",
-                "U": r"(?P<U>5[0-3]|[0-4]\d|\d)",
+                "j": r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9])",
+                "-j": r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9]|[1-9]\d|0[1-9]|[1-9]| [1-9]|  [1-9])",
+                "m": r"(?P<m>1[0-2]|0[1-9])",
+                # "m": r"(?P<m>1[0-2]|0[1-9]|[1-9]| [1-9])",
+                "-m": r"(?P<m>1[0-2]|0[1-9]|[1-9]| [1-9])",
+                "M": r"(?P<M>[0-5]\d)",
+                "-M": r"(?P<M>[0-5]\d|\d| \d)",
+                "S": r"(?P<S>6[0-1]|[0-5]\d)",
+                "-S": r"(?P<S>6[0-1]|[0-5]\d|\d| \d)",
+                "U": r"(?P<U>5[0-3]|[0-4]\d)",
+                "-U": r"(?P<U>5[0-3]|[0-4]\d|\d| \d)",
                 "w": r"(?P<w>[0-6])",
                 "u": r"(?P<u>[1-7])",
-                "V": r"(?P<V>5[0-3]|0[1-9]|[1-4]\d|\d)",
+                "V": r"(?P<V>5[0-3]|0[1-9]|[1-4]\d)",
+                "-V": r"(?P<V>5[0-3]|0[1-9]|[1-4]\d|\d| \d)",
                 # W is set below by using 'U'
                 "y": r"(?P<y>\d\d)",
                 # XXX: Does 'Y' need to worry about having less or more than
@@ -305,11 +319,12 @@ class TimeRE(dict):
             }
         )
         base.__setitem__("W", base.__getitem__("U").replace("U", "W"))
+        base.__setitem__("-W", base.__getitem__("-U").replace("U", "W"))
         base.__setitem__("c", self.pattern(self.locale_time.LC_date_time))
         base.__setitem__("x", self.pattern(self.locale_time.LC_date))
         base.__setitem__("X", self.pattern(self.locale_time.LC_time))
 
-    def __seqToRE(self, to_convert, directive):
+    def __seqToRE(self, to_convert, directive):  # sourcery skip
         """Convert a list to a regex string for matching a directive.
 
         Want possible matching values to be from longest to shortest.  This
@@ -328,7 +343,7 @@ class TimeRE(dict):
         regex = "(?P<%s>%s" % (directive, regex)
         return "%s)" % regex
 
-    def pattern(self, format):
+    def pattern(self, format):  # sourcery skip
         """Return regex pattern for the format string.
 
         Need to make sure that any characters that might be interpreted as
@@ -345,15 +360,21 @@ class TimeRE(dict):
         format = whitespace_replacement.sub(r"\\s+", format)
         while "%" in format:
             directive_index = format.index("%") + 1
+            format_code = format[directive_index : directive_index + 1]
+            format_offset = 1
+            if format_code == "-":
+                format_code = format[directive_index : directive_index + 2]
+                format_offset = 2
             processed_format = "%s%s%s" % (
                 processed_format,
                 format[: directive_index - 1],
-                self[format[directive_index]],
+                self[format_code],
             )
-            format = format[directive_index + 1 :]
-        return "%s%s" % (processed_format, format)
+            format = format[directive_index + format_offset :]
+        pattern = "%s%s" % (processed_format, format)
+        return pattern
 
-    def compile(self, format):
+    def compile(self, format):  # sourcery skip
         """Return a compiled re object for the format string."""
         return re_compile(self.pattern(format), IGNORECASE)
 
@@ -473,8 +494,6 @@ def _strptime_regex(
         raise ValueError(
             "time data %r does not match format %r" % (data_string, format)
         )
-    if len(data_string) != found.end():
-        raise ValueError("unconverted data remains: %s" % data_string[found.end() :])
 
     iso_year = year = None
     month = day = 1
@@ -729,7 +748,10 @@ def _build_regex_patterns(s: str, time_re: TimeRE) -> list[str]:
         raise ValueError(f"Invalid format string: {e}") from e
     regexes = []
     for pattern in model.format_patterns:
-        regex = "" + ("^" if pattern.start_anchor else ".*")
+        print(
+            f"pattern: {pattern.start_anchor}, {pattern.end_anchor}, {[(fs.prefix, fs.format_code, fs.suffix) for fs in pattern.format_strings]}"
+        )
+        regex = "" + ("^" if pattern.start_anchor else ".*?")
         for fs in pattern.format_strings:
             regex += re.escape(fs.prefix) if fs.prefix else ""
             if match := RE_SKIP_CHARS.match(fs.format_code):
@@ -741,8 +763,8 @@ def _build_regex_patterns(s: str, time_re: TimeRE) -> list[str]:
             else:
                 regex += time_re.pattern(fs.format_code)
             regex += re.escape(fs.suffix) if fs.suffix else ""
-        regex += "$" if pattern.end_anchor else ".*"
-        print(regex)
+        regex += "$" if pattern.end_anchor else ".*?"
+        print(f"{regex=}")
         regexes.append(regex)
     return regexes
 
