@@ -746,9 +746,9 @@ def _build_regex_patterns(s: str, time_re: TimeRE) -> list[str]:
         raise ValueError(f"Invalid format string: {e}") from e
     regexes = []
     for pattern in model.format_patterns:
-        print(
-            f"pattern: {pattern.start_anchor}, {pattern.end_anchor}, {[(fs.prefix, fs.format_code, fs.suffix) for fs in pattern.format_strings]}"
-        )
+        # print(
+        #     f"pattern: {pattern.start_anchor}, {pattern.end_anchor}, {[(fs.prefix, fs.format_code, fs.suffix) for fs in pattern.format_strings]}"
+        # )
         regex = "" + ("^" if pattern.start_anchor else ".*?")
         for fs in pattern.format_strings:
             regex += re.escape(fs.prefix) if fs.prefix else ""
