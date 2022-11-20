@@ -277,7 +277,6 @@ class TimeRE(dict):
                 # Unlike the standard library, the leading zero is not optional for %d, %m, %H, %I, %M, %S, %j, %U, %W, and %V
                 # Use %-d, %-m, %-H, %-I, %-M, %-S, %-j, %-U, %-W, and %-V to allow a leading zero
                 "d": r"(?P<d>3[0-1]|[1-2]\d|0[1-9])",
-                # "d": r"(?P<d>3[0-1]|[1-2]\d|0[1-9]|[1-9]| [1-9])",
                 "-d": r"(?P<d>3[0-1]|[1-2]\d|0[1-9]|[1-9]| [1-9])",
                 "f": r"(?P<f>[0-9]{1,6})",
                 "H": r"(?P<H>2[0-3]|[0-1]\d)",
@@ -288,7 +287,6 @@ class TimeRE(dict):
                 "j": r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9])",
                 "-j": r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9]|[1-9]\d|0[1-9]|[1-9]| [1-9]|  [1-9])",
                 "m": r"(?P<m>1[0-2]|0[1-9])",
-                # "m": r"(?P<m>1[0-2]|0[1-9]|[1-9]| [1-9])",
                 "-m": r"(?P<m>1[0-2]|0[1-9]|[1-9]| [1-9])",
                 "M": r"(?P<M>[0-5]\d)",
                 "-M": r"(?P<M>[0-5]\d|\d| \d)",
@@ -452,7 +450,7 @@ def _strptime(data_string: str, format: str):
         if not format_regexes:
             try:
                 format_regexes = [
-                    re.compile(regex)
+                    re.compile(regex, flags=IGNORECASE)
                     for regex in _build_regex_patterns(format, _TimeRE_cache)
                 ]
 
@@ -764,7 +762,7 @@ def _build_regex_patterns(s: str, time_re: TimeRE) -> list[str]:
                 regex += time_re.pattern(fs.format_code)
             regex += re.escape(fs.suffix) if fs.suffix else ""
         regex += "$" if pattern.end_anchor else ".*?"
-        print(f"{regex=}")
+        # print(f"regex: {regex}")
         regexes.append(regex)
     return regexes
 
