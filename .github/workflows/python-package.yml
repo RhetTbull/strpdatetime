@@ -31,7 +31,7 @@ jobs:
         poetry install
     - name: Run mypy
       run: |
-        poetry run mypy
+        poetry run mypy strpdatetime.py
     - name: Test with pytest
       run: |
         poetry run pytest --doctest-glob=README.md
