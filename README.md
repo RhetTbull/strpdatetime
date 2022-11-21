@@ -19,6 +19,10 @@ Third-party packages such as [dateutil](https://github.com/dateutil/dateutil) an
 
 To install from source, clone the repository, `pip install poetry`, and run `poetry install`.
 
+## Source Code
+
+The source code is available on [GitHub](https://github.com/RhetTbull/strpdatetime).
+
 ## Usage
 
 ```pycon
@@ -66,4 +70,4 @@ To ensure backwards compatibility with the Python standard library, `strpdatetim
 
 ## Contributing
 
-Contributions of all kinds are welcome! Please open an issue or pull request on [GitHub]().
+Contributions of all kinds are welcome! Please open an issue or pull request on [GitHub](https://github.com/RhetTbull/strpdatetime).
