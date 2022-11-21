@@ -3,14 +3,14 @@
 This module is a fork of the _strptime.py module from the Python 3.9 standard library, 
 with the following changes:
     - Modify _strptime to accept a format string in Super Strptime Format Language
-    - Add datetime_strptime function to return a datetime object
+    - Add strpdatetime function to return a datetime object
 
 Original source for the _strptime module in the Python 3.9 standard library:
 https://github.com/python/cpython/blob/3.9/Lib/_strptime.py
 
 This code is licensed under the Python Software Foundation License.
 
-The Super Strftime Format Language is a superset of the strftime/strptime format codes, with the following additions:
+The Strpdatetime Format Language is a superset of the strftime/strptime format codes, with the following additions:
     - *: Match any number of characters
     - ^: Match the beginning of the string
     - $: Match the end of the string
@@ -19,6 +19,7 @@ The Super Strftime Format Language is a superset of the strftime/strptime format
     - {n,m}: Match at least n characters and at most m characters
     - In addition to `%%` for a literal `%`, the following format codes are supported: 
         `%^`, `%$`, `%*`, `%|`, `%{`, `%}` for `^`, `$`, `*`, `|`, `{`, `}` respectively
+    - |: join multiple format codes; each code is tried in order until one matches
     - Unlike the standard library, the leading zero is not optional for %d, %m, %H, %I, %M, %S, %j, %U, %W, and %V
     - For optional leading zero, use %-d, %-m, %-H, %-I, %-M, %-S, %-j, %-U, %-W, and %-V
 """
@@ -42,10 +43,10 @@ from textx import metamodel_from_str  # type: ignore
 from textx.exceptions import TextXSyntaxError  # type: ignore
 from textx.metamodel import TextXMetaModel  # type: ignore
 
-# textx grammar for Super Strptime Format Language
+# textx grammar for Strpdatetime Format Language
 # which is a superset of the strftime/strptime format codes
 GRAMMAR = """
-// Super Strptime Format Language
+// Super Strpdatetime Format Language
 
 Model:
     format_patterns+=FormatPattern['|']
