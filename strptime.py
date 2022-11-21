@@ -101,7 +101,7 @@ NON_FORMAT_CODE:
 
 STRPTIME_META_MODEL: TextXMetaModel = metamodel_from_str(GRAMMAR, skipws=False)
 
-RE_SKIP_CHARS = re.compile(r"{([0-9]+),?([0-9]*)}")
+RE_SKIP_CHARS = re.compile(r"{([0-9]+,?[0-9]*)}")
 RE_SPECIAL_CHARS = re.compile(r"%([%^$|*{}])")
 
 
@@ -755,6 +755,7 @@ def _build_regex_patterns(s: str, time_re: TimeRE) -> list[str]:
         # print(
         #     f"pattern: {pattern.start_anchor}, {pattern.end_anchor}, {[(fs.prefix, fs.format_code, fs.suffix) for fs in pattern.format_strings]}"
         # )
+        seen_codes = set()
         regex = "" + ("^" if pattern.start_anchor else ".*?")
         for fs in pattern.format_strings:
             regex += re.escape(fs.prefix) if fs.prefix else ""
@@ -765,6 +766,10 @@ def _build_regex_patterns(s: str, time_re: TimeRE) -> list[str]:
             elif fs.format_code == "*":
                 regex += ".*?"
             else:
+                # it's a normal strptime format code
+                if fs.format_code in seen_codes:
+                    raise ValueError(f"Repeated format code: {fs.format_code}")
+                seen_codes.add(fs.format_code)
                 regex += time_re.pattern(fs.format_code)
             regex += re.escape(fs.suffix) if fs.suffix else ""
         regex += "$" if pattern.end_anchor else ".*?"
