@@ -820,4 +820,7 @@ if __name__ == "__main__":
     import sys
 
     for string in sys.argv[2:]:
-        print(strpdatetime(string, sys.argv[1]))
+        try:
+            print(f"{string}: {strpdatetime(string, sys.argv[1])}")
+        except ValueError as e:
+            print(f"{string}: {e}")
