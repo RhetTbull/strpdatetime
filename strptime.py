@@ -1,7 +1,9 @@
 """strptime utils for parsing date/time strings with a superset of the strftime/strptime format codes.
 
-This module is a fork of the _strptime.py module from the Python 3.9 standard library, with the following changes:
-    - Modify _strptime to accept a format string in Super Strftime Format Language
+This module is a fork of the _strptime.py module from the Python 3.9 standard library, 
+with the following changes:
+    - Modify _strptime to accept a format string in Super Strptime Format Language
+    - Add datetime_strptime function to return a datetime object
 
 Original source for the _strptime module in the Python 3.9 standard library:
 https://github.com/python/cpython/blob/3.9/Lib/_strptime.py
@@ -24,24 +26,26 @@ The Super Strftime Format Language is a superset of the strftime/strptime format
 from __future__ import annotations
 
 import calendar
-import datetime
 import locale
 import re
 import time
 from _thread import allocate_lock as _thread_allocate_lock
 from datetime import date as datetime_date
+from datetime import datetime
 from datetime import timedelta as datetime_timedelta
 from datetime import timezone as datetime_timezone
 from re import IGNORECASE
 from re import compile as re_compile
 from re import escape as re_escape
 
-from textx import metamodel_from_str
-from textx.exceptions import TextXSyntaxError
-from textx.metamodel import TextXMetaModel
+from textx import metamodel_from_str  # type: ignore
+from textx.exceptions import TextXSyntaxError  # type: ignore
+from textx.metamodel import TextXMetaModel  # type: ignore
 
+# textx grammar for Super Strptime Format Language
+# which is a superset of the strftime/strptime format codes
 GRAMMAR = """
-// Super Strftime Format Language
+// Super Strptime Format Language
 
 Model:
     format_patterns+=FormatPattern['|']
@@ -54,9 +58,9 @@ FormatPattern:
 ;
 
 FormatString:
-    prefix=NON_FORMAT_CODE?
+    prefix=NonFormatCode?
     format_code=FormatCode
-    suffix=NON_FORMAT_CODE?
+    suffix=NonFormatCode?
 ;
 
 StartAnchor:
@@ -93,7 +97,8 @@ FormatCode:
     FormatCodeSkip | FormatCodeDate | FormatCodeSpecialChars | FormatCodeStar
 ;
 
-NON_FORMAT_CODE:
+// Match any character except for format codes
+NonFormatCode:
     /[^0-9%$^|*{}]/+
 ;
 """
@@ -187,7 +192,7 @@ class LocaleTime(object):
             am_pm.append(time.strftime("%p", time_tuple).lower())
         self.am_pm = am_pm
 
-    def __calc_date_time(self):
+    def __calc_date_time(self):  # sourcery skip
         # Set self.date_time, self.date, & self.time by using
         # time.strftime().
 
@@ -245,7 +250,7 @@ class LocaleTime(object):
         self.LC_date = date_time[1]
         self.LC_time = date_time[2]
 
-    def __calc_timezone(self):
+    def __calc_timezone(self):  # sourcery skip
         # Set self.timezone by using time.tzname.
         # Do not worry about possibility of time.tzname[0] == time.tzname[1]
         # and time.daylight; handle that in strptime.
@@ -388,7 +393,7 @@ _cache_lock = _thread_allocate_lock()
 # first!
 _TimeRE_cache = TimeRE()
 _CACHE_MAX_SIZE = 5  # Max number of regexes stored in _regex_cache
-_regex_cache = {}
+_regex_cache: dict[str, list[re.Pattern]] = {}
 
 
 def _calc_julian_from_U_or_W(year, week_of_year, day_of_week, week_starts_Mon):
@@ -412,7 +417,7 @@ def _calc_julian_from_U_or_W(year, week_of_year, day_of_week, week_starts_Mon):
         return 1 + days_to_week + day_of_week
 
 
-def _calc_julian_from_V(iso_year, iso_week, iso_weekday):
+def _calc_julian_from_V(iso_year, iso_week, iso_weekday) -> tuple[int, int]:
     """Calculate the Julian day based on the ISO 8601 year, week, and weekday.
     ISO weeks start on Mondays, with week 01 being the week containing 4 Jan.
     ISO week days range from 1 (Monday) to 7 (Sunday).
@@ -428,10 +433,19 @@ def _calc_julian_from_V(iso_year, iso_week, iso_weekday):
     return iso_year, ordinal
 
 
-def _strptime(data_string: str, format: str):
-    """Return a 2-tuple consisting of a time struct and an int containing
-    the number of microseconds based on the input string and the
-    format regex."""
+def _strptime(data_string: str, format: str) -> tuple:
+    """Return a 3-tuple consisting of a time struct, an int containing
+    the number of microseconds, and an int containing the microseconds
+    for the GMT offset based on the input string and the format regex.
+
+    Args:
+        data_string: The string to parse.
+        format: The regex to use to parse the string.
+
+    Returns:
+        A 3-tuple containing a time struct, the number of microseconds, and
+        the microseconds for the GMT offset.
+    """
 
     for index, arg in enumerate([data_string, format]):
         if not isinstance(arg, str):
@@ -452,7 +466,7 @@ def _strptime(data_string: str, format: str):
         if len(_regex_cache) > _CACHE_MAX_SIZE:
             _regex_cache.clear()
 
-        format_regexes = _regex_cache.get(format)
+        format_regexes: list[re.Pattern] | None = _regex_cache.get(format)
         if not format_regexes:
             try:
                 format_regexes = [
@@ -489,17 +503,28 @@ def _strptime(data_string: str, format: str):
 
 def _strptime_regex(
     data_string: str, format_regex: re.Pattern, locale_time: LocaleTime
-):
-    """Return a 2-tuple consisting of a time struct and an int containing
-    the number of microseconds based on the input string and the
-    format regex."""
+) -> tuple:
+    """Return a 3-tuple consisting of a time struct, an int containing
+    the number of microseconds, and an int containing the microseconds
+    for the GMT offset based on the input string and the format regex.
+
+    Args:
+        data_string: The string to parse.
+        format_regex: The regex to use to parse the string.
+        locale_time: The locale time to use for parsing.
+
+    Returns:
+        A 3-tuple containing a time struct, the number of microseconds, and
+        the microseconds for the GMT offset.
+    """
     found = format_regex.match(data_string)
     if not found:
         raise ValueError(
             "time data %r does not match format %r" % (data_string, format)
         )
 
-    iso_year = year = None
+    iso_year: int | None = None
+    year: int | None = None
     month = day = 1
     hour = minute = second = fraction = 0
     tz = -1
@@ -511,7 +536,8 @@ def _strptime_regex(
     week_of_year_start = None
     # weekday and julian defaulted to None so as to signal need to calculate
     # values
-    weekday = julian = None
+    weekday: int | None = None
+    julian: int | None = None
     found_dict = found.groupdict()
     for group_key in found_dict.keys():
         # Directives not explicitly handled below:
@@ -727,9 +753,13 @@ def _strptime_time(data_string, format="%a %b %d %H:%M:%S %Y"):
     return time.struct_time(tt[: time._STRUCT_TM_ITEMS])
 
 
-def _strptime_datetime(cls, data_string, format="%a %b %d %H:%M:%S %Y"):
-    """Return a class cls instance based on the input string and the
-    format string."""
+def _strptime_datetime(data_string, format="%a %b %d %H:%M:%S %Y") -> datetime:
+    """Return a datetime instance based on the input string and the
+    format string.
+
+    Modified from the original standard library function which was passed the
+    datetime class to avoid circular imports.
+    """
     tt, fraction, gmtoff_fraction = _strptime(data_string, format)
     tzname, gmtoff = tt[-2:]
     args = tt[:6] + (fraction,)
@@ -741,7 +771,7 @@ def _strptime_datetime(cls, data_string, format="%a %b %d %H:%M:%S %Y"):
             tz = datetime_timezone(tzdelta)
         args += (tz,)
 
-    return cls(*args)
+    return datetime(*args)
 
 
 def _build_regex_patterns(s: str, time_re: TimeRE) -> list[str]:
@@ -778,9 +808,9 @@ def _build_regex_patterns(s: str, time_re: TimeRE) -> list[str]:
     return regexes
 
 
-def datetime_strptime(date_string: str, format: str) -> datetime.datetime:
+def datetime_strptime(date_string: str, format: str) -> datetime:
     """Parse a string to a datetime according to a format."""
-    if dt := _strptime_datetime(datetime.datetime, date_string, format):
+    if dt := _strptime_datetime(date_string, format):
         return dt
     raise ValueError("time data %r does not match format %r" % (date_string, format))
 
