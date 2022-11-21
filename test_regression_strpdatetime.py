@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-import strptime
+import strpdatetime
 
 MINUTE = timedelta(minutes=1)
 HOUR = timedelta(hours=1)
@@ -18,7 +18,7 @@ def test_strptime():
     string = "2004-12-01 13:02:47.197"
     format = "%Y-%m-%d %H:%M:%S.%f"
     expected = datetime.strptime(string, format)
-    got = strptime.datetime_strptime(string, format)
+    got = strpdatetime.strpdatetime(string, format)
     assert type(got) == datetime
     assert expected == got
 
@@ -30,12 +30,12 @@ def test_strptime():
     ]
     for string, format in inputs:
         expected = datetime.strptime(string, format)
-        got = strptime.datetime_strptime(string, format)
+        got = strpdatetime.strpdatetime(string, format)
         assert got == expected
 
-    assert strptime.datetime_strptime("+0002", "%z").utcoffset() == 2 * MINUTE
-    assert strptime.datetime_strptime("-0002", "%z").utcoffset() == -2 * MINUTE
-    assert strptime.datetime_strptime(
+    assert strpdatetime.strpdatetime("+0002", "%z").utcoffset() == 2 * MINUTE
+    assert strpdatetime.strpdatetime("-0002", "%z").utcoffset() == -2 * MINUTE
+    assert strpdatetime.strpdatetime(
         "-00:02:01.000003", "%z"
     ).utcoffset() == -timedelta(minutes=2, seconds=1, microseconds=3)
 
@@ -54,24 +54,24 @@ def test_strptime():
         hours, minutes = divmod(seconds // 60, 60)
 
         dtstr = "{}{:02d}{:02d}".format(sign, hours, minutes)
-        dt = strptime.datetime_strptime(dtstr, "%z")
+        dt = strpdatetime.strpdatetime(dtstr, "%z")
         assert dt.utcoffset() == timedelta(seconds=tzseconds)
 
         dtstr = "{}{:02d}{:02d} {}".format(sign, hours, minutes, tzname.lower())
-        dt = strptime.datetime_strptime(dtstr, "%z %Z")
+        dt = strpdatetime.strpdatetime(dtstr, "%z %Z")
 
         assert dt.utcoffset() == timedelta(seconds=tzseconds)
         assert dt.tzname().lower() == tzname.lower()
 
         dtstr = "{}{:02d}{:02d} {}".format(sign, hours, minutes, tzname.upper())
-        dt = strptime.datetime_strptime(dtstr, "%z %Z")
+        dt = strpdatetime.strpdatetime(dtstr, "%z %Z")
 
         assert dt.utcoffset() == timedelta(seconds=tzseconds)
         assert dt.tzname().upper() == tzname.upper()
 
     # Can produce inconsistent datetime
     dtstr, fmt = "+1234 UTC", "%z %Z"
-    dt = strptime.datetime_strptime(dtstr, fmt)
+    dt = strpdatetime.strpdatetime(dtstr, fmt)
     assert dt.utcoffset() == 12 * HOUR + 34 * MINUTE
     assert dt.tzname() == "UTC"
 
@@ -79,14 +79,14 @@ def test_strptime():
     assert dt.strftime(fmt) == dtstr
 
     # Produce naive datetime if no %z is provided
-    assert strptime.datetime_strptime("UTC", "%Z").tzinfo is None
+    assert strpdatetime.strpdatetime("UTC", "%Z").tzinfo is None
 
     with pytest.raises(ValueError):
-        strptime.datetime_strptime("-2400", "%z")
+        strpdatetime.strpdatetime("-2400", "%z")
     with pytest.raises(ValueError):
-        strptime.datetime_strptime("-000", "%z")
+        strpdatetime.strpdatetime("-000", "%z")
     with pytest.raises(ValueError):
-        strptime.datetime_strptime("z", "%z")
+        strpdatetime.strpdatetime("z", "%z")
 
 
 def test_strptime_single_digit():
@@ -94,7 +94,9 @@ def test_strptime_single_digit():
 
     with pytest.raises(ValueError):
         # %y does require two digits.
-        newdate = strptime.datetime_strptime("01/02/3 04:05:06", "%d/%m/%y %H:%M:%S")
+        newdate = strpdatetime.strpdatetime(
+            "01/02/3 04:05:06", "%d/%m/%y %H:%M:%S"
+        )
 
     dt1 = datetime(2003, 2, 1, 4, 5, 6)
     dt2 = datetime(2003, 1, 2, 4, 5, 6)
@@ -114,5 +116,5 @@ def test_strptime_single_digit():
         ("%-V", "6/4/2003", "%u/%-V/%G", dt4),
     ]
     for _, string, format, target in inputs:
-        newdate = strptime.datetime_strptime(string, format)
+        newdate = strpdatetime.strpdatetime(string, format)
         assert newdate == target

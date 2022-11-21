@@ -5,7 +5,7 @@ import locale
 
 import pytest
 
-from strptime import datetime_strptime
+from strpdatetime import strpdatetime
 
 TEST_DATA = [
     ["2022-01-01 00:00:00", "%Y-%m-%d %H:%M:%S", datetime(2022, 1, 1, 0, 0, 0)],
@@ -45,4 +45,4 @@ TEST_DATA = [
 def test_datetime_strptime(string, format, expected):
     """Test datetime_strptime"""
     locale.setlocale(locale.LC_ALL, "en_US")
-    assert datetime_strptime(string, format) == expected
+    assert strpdatetime(string, format) == expected

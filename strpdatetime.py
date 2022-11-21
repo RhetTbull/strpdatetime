@@ -808,7 +808,7 @@ def _build_regex_patterns(s: str, time_re: TimeRE) -> list[str]:
     return regexes
 
 
-def datetime_strptime(date_string: str, format: str) -> datetime:
+def strpdatetime(date_string: str, format: str) -> datetime:
     """Parse a string to a datetime according to a format."""
     if dt := _strptime_datetime(date_string, format):
         return dt
@@ -819,4 +819,4 @@ if __name__ == "__main__":
     import sys
 
     for string in sys.argv[2:]:
-        print(datetime_strptime(string, sys.argv[1]))
+        print(strpdatetime(string, sys.argv[1]))
