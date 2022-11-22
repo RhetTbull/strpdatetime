@@ -1,4 +1,4 @@
-"""strptime utils for parsing date/time strings with a superset of the strftime/strptime format codes.
+"""Parse date/time strings using a superset of the strftime/strptime format codes.
 
 This module is a fork of the _strptime.py module from the Python 3.9 standard library, 
 with the following changes:
@@ -10,7 +10,8 @@ https://github.com/python/cpython/blob/3.9/Lib/_strptime.py
 
 This code is licensed under the Python Software Foundation License.
 
-The Strpdatetime Format Language is a superset of the strftime/strptime format codes, with the following additions:
+The Strpdatetime Format Language is a superset of the strftime/strptime format codes, 
+with the following additions:
     - *: Match any number of characters
     - ^: Match the beginning of the string
     - $: Match the end of the string
@@ -20,15 +21,21 @@ The Strpdatetime Format Language is a superset of the strftime/strptime format c
     - In addition to `%%` for a literal `%`, the following format codes are supported: 
         `%^`, `%$`, `%*`, `%|`, `%{`, `%}` for `^`, `$`, `*`, `|`, `{`, `}` respectively
     - |: join multiple format codes; each code is tried in order until one matches
-    - Unlike the standard library, the leading zero is not optional for %d, %m, %H, %I, %M, %S, %j, %U, %W, and %V
+    - Unlike the standard library, the leading zero is not optional for 
+        %d, %m, %H, %I, %M, %S, %j, %U, %W, and %V
     - For optional leading zero, use %-d, %-m, %-H, %-I, %-M, %-S, %-j, %-U, %-W, and %-V
+
+For more information on strptime format codes, see: 
+https://docs.python.org/3/library/datetime.html?highlight=strptime#strftime-and-strptime-format-codes
 """
 
 from __future__ import annotations
 
+import argparse
 import calendar
 import locale
 import re
+import sys
 import time
 from _thread import allocate_lock as _thread_allocate_lock
 from datetime import date as datetime_date
@@ -817,10 +824,19 @@ def strpdatetime(date_string: str, format: str) -> datetime:
 
 
 if __name__ == "__main__":
-    import sys
-
-    for string in sys.argv[2:]:
+    """Simple test program"""
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        prog="strpdatetime",
+        description=__doc__.splitlines()[0],
+        epilog="\n".join(__doc__.splitlines()[1:]),
+    )
+    parser.add_argument("pattern", help="strpdatetime pattern")
+    parser.add_argument("string", help="string to parse", nargs="+")
+    args = parser.parse_args()
+    for string in args.string:
         try:
-            print(f"{string}: {strpdatetime(string, sys.argv[1])}")
+            print(f"{string}, {strpdatetime(string, args.pattern).isoformat()}")
         except ValueError as e:
-            print(f"{string}: {e}")
+            print(e, file=sys.stderr)
+            print(f"{string},")
