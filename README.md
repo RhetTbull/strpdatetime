@@ -66,13 +66,15 @@ datetime.datetime(2022, 11, 20, 0, 0)
 
 ## Command Line
 
-`strpdatetime` includes a very simple command line interface. It can be used to test the regex-like syntax.
+`strpdatetime` includes a very simple command line interface. It can be used to test the regex-like syntax. Use `python -m strpdatetime --help` for more information.
 
 ```bash
-$ python -m strpdatetime "IMG_*_%Y_%m_%d" *.jpg
-IMG_2131_2022_11_20.jpg: 2022-11-20 00:00:00
-IMG_2132.jpg: time data 'IMG_2132.jpg' does not match format 'IMG_*_%Y_%m_%d'
-IMG_2134_2022_11_20.jpg: 2022-11-20 00:00:00
+python -m strpdatetime "^IMG_*_%Y_%m_%d|IMG{4}_%Y-%m-%d-%H%M%S" *.jpg
+IMG1234_2022-11-20-063400.jpg, 2022-11-20T06:34:00
+IMG_1234_2022_11_21.jpg, 2022-11-21T00:00:00
+time data 'IMG_2132.jpg' does not match format '^IMG_*_%Y_%m_%d|IMG{4}_%Y-%m-%d-%H%M%S'
+IMG_2132.jpg,
+IMG_5678_2022_11_20.jpg, 2022-11-20T00:00:00
 ```
 
 ## License
