@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "strpdatetime"
-version = "0.1.0"
+version = "0.2.0"
 description = "Parse strings into Python datetime objects; extends Python's datetime.strptime() with additional features."
 authors = ["Rhet Turnbull <rturnbull+git@gmail.com>"]
 license = "Python Software Foundation License"
