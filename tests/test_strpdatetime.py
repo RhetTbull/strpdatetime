@@ -44,5 +44,5 @@ TEST_DATA = [
 @pytest.mark.parametrize("string, format, expected", TEST_DATA)
 def test_datetime_strptime(string, format, expected):
     """Test datetime_strptime"""
-    locale.setlocale(locale.LC_ALL, "en_US")
+    locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
     assert strpdatetime(string, format) == expected
