@@ -9,7 +9,7 @@ These are notes to myself so I don't forget how to do things but they might be u
 - Install [uv](https://github.com/astral-sh/uv): `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Create the virtual environment: `uv venv` or `uv venv --python 3.13` to specify a specific version
 - Activate the virtual environment: `source .venv/bin/activate`
-- Install package dependencies: `uv pip install -r pyproject.toml --extra dev`
+- Install package dependencies: `uv sync --python 3.13 --all-extras` (replace 3.13 with the desired version of Python)
 
 ## Testing and Building
 
