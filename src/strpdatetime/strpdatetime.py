@@ -1,6 +1,6 @@
 """Parse date/time strings using a superset of the strftime/strptime format codes.
 
-This module is a fork of the _strptime.py module from the Python 3.9 standard library, 
+This module is a fork of the _strptime.py module from the Python 3.9 standard library,
 with the following changes:
     - Modify _strptime to accept a format string in Super Strptime Format Language
     - Add strpdatetime function to return a datetime object
@@ -10,7 +10,7 @@ https://github.com/python/cpython/blob/3.9/Lib/_strptime.py
 
 This code is licensed under the Python Software Foundation License.
 
-The Strpdatetime Format Language is a superset of the strftime/strptime format codes, 
+The Strpdatetime Format Language is a superset of the strftime/strptime format codes,
 with the following additions:
     - *: Match any number of characters
     - ^: Match the beginning of the string
@@ -18,14 +18,14 @@ with the following additions:
     - {n}: Match exactly n characters
     - {n,}: Match at least n characters
     - {n,m}: Match at least n characters and at most m characters
-    - In addition to `%%` for a literal `%`, the following format codes are supported: 
+    - In addition to `%%` for a literal `%`, the following format codes are supported:
         `%^`, `%$`, `%*`, `%|`, `%{`, `%}` for `^`, `$`, `*`, `|`, `{`, `}` respectively
     - |: join multiple format codes; each code is tried in order until one matches
-    - Unlike the standard library, the leading zero is not optional for 
+    - Unlike the standard library, the leading zero is not optional for
         %d, %m, %H, %I, %M, %S, %j, %U, %W, and %V
     - For optional leading zero, use %-d, %-m, %-H, %-I, %-M, %-S, %-j, %-U, %-W, and %-V
 
-For more information on strptime format codes, see: 
+For more information on strptime format codes, see:
 https://docs.python.org/3/library/datetime.html?highlight=strptime#strftime-and-strptime-format-codes
 """
 
@@ -823,8 +823,8 @@ def strpdatetime(date_string: str, format: str) -> datetime:
     raise ValueError("time data %r does not match format %r" % (date_string, format))
 
 
-if __name__ == "__main__":
-    """Simple test program"""
+def main():
+    """Parse a string to a datetime according to a format."""
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         prog="strpdatetime",
