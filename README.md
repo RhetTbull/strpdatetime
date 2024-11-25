@@ -17,7 +17,14 @@ Third-party packages such as [dateutil](https://github.com/dateutil/dateutil) an
 
 `pip install strpdatetime`
 
-To install from source, clone the repository, `pip install poetry`, and run `poetry install`.
+To install from source:
+
+- Clone the repository
+- Change to the project directory
+- Install [uv](https://github.com/astral-sh/uv): `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Create the virtual environment: `uv venv` or `uv venv --python 3.13` to specify a specific version
+- Activate the virtual environment: `source .venv/bin/activate`
+- Install package dependencies: `uv pip install -r pyproject.toml --extra dev`
 
 ## Source Code
 

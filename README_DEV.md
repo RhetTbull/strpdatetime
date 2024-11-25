@@ -2,11 +2,21 @@
 
 These are notes to myself so I don't forget how to do things but they might be useful for others that want to contribute.
 
-## Setup
+## Setup the environment
 
 - Clone the repository
-- Install poetry: `pip install poetry`
-- Install dependencies: `poetry install`
-- Run mypy: `poetry run mypy strpdatetime.py`
-- Run tests: `poetry run pytest --doctest-glob=README.md  -vv`
-- Build the package: `rm -rf dist/ && rm -rf build/ && poetry build`
+- Change to the project directory
+- Install [uv](https://github.com/astral-sh/uv): `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Create the virtual environment: `uv venv` or `uv venv --python 3.13` to specify a specific version
+- Activate the virtual environment: `source .venv/bin/activate`
+- Install package dependencies: `uv pip install -r pyproject.toml --extra dev`
+
+## Testing and Building
+
+- Run mypy: `mypy strpdatetime.py`
+- Run tests: `pytest --doctest-glob=README.md  -vv`
+- Build the package: `rm -rf dist/ && rm -rf build/ && uv build`
+
+## Publish to PyPI
+
+- `uv publish`
