@@ -21,6 +21,12 @@ These are notes to myself so I don't forget how to do things but they might be u
 
 Edit the version in `pyproject.toml`.
 
+## Changelog
+
+Use [auto-changelog](https://github.com/cookpete/auto-changelog):
+
+- `auto-changelog --ignore-commit-pattern CHANGELOG -l 5`
+
 ## Publish to PyPI
 
 - `uv publish`
