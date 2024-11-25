@@ -17,6 +17,10 @@ These are notes to myself so I don't forget how to do things but they might be u
 - Run tests: `pytest --doctest-glob=README.md  -vv`
 - Build the package: `rm -rf dist/ && rm -rf build/ && uv build`
 
+## Bump the version
+
+Edit the version in `pyproject.toml`.
+
 ## Publish to PyPI
 
 - `uv publish`
